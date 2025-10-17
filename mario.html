@@ -135,9 +135,10 @@
         
         // Enemies
         const enemies = [
-            {x: 450, y: 400, width: 16, height: 16, velocityX: -1, type: 'goomba'},
-            {x: 800, y: 400, width: 16, height: 16, velocityX: 1, type: 'goomba'},
-            {x: 1300, y: 400, width: 16, height: 16, velocityX: -1, type: 'goomba'}
+            {x: 250, y: 416, width: 16, height: 16, velocityX: -1, velocityY: 0, onGround: false, type: 'goomba'},
+            {x: 700, y: 416, width: 16, height: 16, velocityX: 1, velocityY: 0, onGround: false, type: 'goomba'},
+            {x: 1200, y: 416, width: 16, height: 16, velocityX: -1, velocityY: 0, onGround: false, type: 'goomba'},
+            {x: 1600, y: 416, width: 16, height: 16, velocityX: 1, velocityY: 0, onGround: false, type: 'goomba'}
         ];
         
         // Flag at end
@@ -164,26 +165,57 @@
             const px = Math.floor(player.x - camera.x);
             const py = Math.floor(player.y);
             
-            // Body
-            ctx.fillStyle = '#ff0000';
-            ctx.fillRect(px + 4, py + 4, 8, 8);
-            
             // Hat
             ctx.fillStyle = '#ff0000';
-            ctx.fillRect(px + 2, py, 12, 4);
+            ctx.fillRect(px + 5, py, 6, 2);
+            ctx.fillRect(px + 3, py + 2, 10, 3);
+            
+            // Hair/sideburns
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(px + 3, py + 5, 2, 2);
+            ctx.fillRect(px + 11, py + 5, 2, 2);
             
             // Face
             ctx.fillStyle = '#ffdbac';
-            ctx.fillRect(px + 6, py + 4, 4, 4);
+            ctx.fillRect(px + 5, py + 5, 6, 5);
+            
+            // Eyes
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(px + 6, py + 6, 1, 1);
+            ctx.fillRect(px + 9, py + 6, 1, 1);
+            
+            // Mustache
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(px + 5, py + 8, 2, 2);
+            ctx.fillRect(px + 9, py + 8, 2, 2);
+            
+            // Shirt (red)
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(px + 4, py + 10, 8, 3);
+            
+            // Overalls straps
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(px + 5, py + 10, 2, 1);
+            ctx.fillRect(px + 9, py + 10, 2, 1);
             
             // Overalls
             ctx.fillStyle = '#0000ff';
-            ctx.fillRect(px + 4, py + 12, 8, 4);
+            ctx.fillRect(px + 3, py + 13, 10, 2);
+            
+            // Buttons
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(px + 5, py + 11, 1, 1);
+            ctx.fillRect(px + 10, py + 11, 1, 1);
             
             // Legs
-            ctx.fillStyle = '#8b4513';
-            ctx.fillRect(px + 4, py + 12, 3, 4);
-            ctx.fillRect(px + 9, py + 12, 3, 4);
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(px + 4, py + 15, 3, 1);
+            ctx.fillRect(px + 9, py + 15, 3, 1);
+            
+            // Shoes
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(px + 3, py + 15, 4, 1);
+            ctx.fillRect(px + 9, py + 15, 4, 1);
         }
         
         // Draw platforms
@@ -246,18 +278,35 @@
                 const ex = Math.floor(enemy.x - camera.x);
                 const ey = Math.floor(enemy.y);
                 
-                ctx.fillStyle = '#8b4513';
-                ctx.fillRect(ex, ey, enemy.width, enemy.height);
-                ctx.fillStyle = '#654321';
-                ctx.fillRect(ex + 2, ey + 2, enemy.width - 4, enemy.height - 4);
+                // Goomba body (mushroom shape)
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(ex + 2, ey, 12, 4);
+                ctx.fillRect(ex, ey + 4, 16, 8);
                 
-                // Eyes
+                // Darker brown for shading
+                ctx.fillStyle = '#654321';
+                ctx.fillRect(ex + 4, ey + 1, 8, 2);
+                ctx.fillRect(ex + 2, ey + 6, 12, 4);
+                
+                // Eyes (angry look)
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(ex + 3, ey + 4, 3, 3);
-                ctx.fillRect(ex + 10, ey + 4, 3, 3);
+                ctx.fillRect(ex + 4, ey + 6, 3, 3);
+                ctx.fillRect(ex + 9, ey + 6, 3, 3);
+                
+                // Pupils
                 ctx.fillStyle = '#000000';
-                ctx.fillRect(ex + 4, ey + 5, 2, 2);
-                ctx.fillRect(ex + 11, ey + 5, 2, 2);
+                ctx.fillRect(ex + 5, ey + 7, 2, 2);
+                ctx.fillRect(ex + 10, ey + 7, 2, 2);
+                
+                // Eyebrows (angry)
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(ex + 4, ey + 5, 3, 1);
+                ctx.fillRect(ex + 9, ey + 5, 3, 1);
+                
+                // Feet
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(ex + 2, ey + 12, 5, 4);
+                ctx.fillRect(ex + 9, ey + 12, 5, 4);
             });
         }
         
@@ -401,27 +450,73 @@
         // Update enemies
         function updateEnemies() {
             enemies.forEach(enemy => {
-                enemy.x += enemy.velocityX;
+                // Apply gravity to enemies
+                enemy.velocityY += player.gravity;
+                enemy.y += enemy.velocityY;
                 
-                // Turn around at edges
-                let onPlatform = false;
+                // Check platform collisions for enemies
+                enemy.onGround = false;
                 platforms.forEach(platform => {
-                    if (checkCollision(enemy, platform)) {
-                        onPlatform = true;
-                    }
-                    
-                    // Check if about to fall off
-                    const ahead = {
-                        x: enemy.x + (enemy.velocityX > 0 ? enemy.width : -4),
-                        y: enemy.y + enemy.height,
-                        width: 4,
-                        height: 4
+                    const enemyRect = {
+                        x: enemy.x,
+                        y: enemy.y,
+                        width: enemy.width,
+                        height: enemy.height
                     };
                     
-                    if (!checkCollision(ahead, platform) && onPlatform) {
-                        enemy.velocityX *= -1;
+                    if (checkCollision(enemyRect, platform)) {
+                        if (enemy.velocityY > 0) {
+                            enemy.y = platform.y - enemy.height;
+                            enemy.velocityY = 0;
+                            enemy.onGround = true;
+                        }
                     }
                 });
+                
+                // Move horizontally
+                enemy.x += enemy.velocityX;
+                
+                // Check for walls and edges
+                let hitWall = false;
+                platforms.forEach(platform => {
+                    const enemyRect = {
+                        x: enemy.x + enemy.velocityX,
+                        y: enemy.y,
+                        width: enemy.width,
+                        height: enemy.height
+                    };
+                    
+                    // Check wall collision
+                    if (checkCollision(enemyRect, platform)) {
+                        hitWall = true;
+                    }
+                    
+                    // Check if about to fall off edge
+                    if (enemy.onGround) {
+                        const aheadRect = {
+                            x: enemy.x + (enemy.velocityX > 0 ? enemy.width : -2),
+                            y: enemy.y + enemy.height + 2,
+                            width: 2,
+                            height: 2
+                        };
+                        
+                        let groundAhead = false;
+                        platforms.forEach(p => {
+                            if (checkCollision(aheadRect, p)) {
+                                groundAhead = true;
+                            }
+                        });
+                        
+                        if (!groundAhead) {
+                            hitWall = true;
+                        }
+                    }
+                });
+                
+                // Turn around if hit wall or edge
+                if (hitWall) {
+                    enemy.velocityX *= -1;
+                }
             });
         }
         

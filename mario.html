@@ -87,7 +87,9 @@
             onGround: false,
             direction: 1,
             frame: 0,
-            animTimer: 0
+            animTimer: 0,
+            inPipe: false,
+            pipeTimer: 0
         };
         
         // Keys
@@ -113,8 +115,8 @@
             {x: 1500, y: 208, width: 80, height: 16, type: 'brick'},
             
             // Pipes
-            {x: 600, y: 384, width: 32, height: 48, type: 'pipe'},
-            {x: 1000, y: 368, width: 32, height: 64, type: 'pipe'}
+            {x: 600, y: 384, width: 32, height: 48, type: 'pipe', entrance: true, exit: false, targetX: 1000},
+            {x: 1000, y: 368, width: 32, height: 64, type: 'pipe', entrance: false, exit: true, targetX: null}
         ];
         
         // Coins
@@ -250,8 +252,22 @@
                     ctx.fillRect(px, py, platform.width, platform.height);
                     ctx.fillStyle = '#008000';
                     ctx.fillRect(px + 2, py + 2, platform.width - 4, platform.height - 2);
+                    
+                    // Pipe rim (top)
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(px - 2, py - 2, platform.width + 4, 4);
+                    ctx.fillStyle = '#00cc00';
+                    ctx.fillRect(px, py, platform.width, 2);
+                    
+                    // Dark pipe opening
                     ctx.fillStyle = '#000000';
-                    ctx.fillRect(px + 4, py, platform.width - 8, 6);
+                    ctx.fillRect(px + 4, py, platform.width - 8, 8);
+                    
+                    // Pipe indicator if entrance
+                    if (platform.entrance) {
+                        ctx.fillStyle = '#ffff00';
+                        ctx.fillRect(px + platform.width / 2 - 2, py + 4, 4, 2);
+                    }
                 }
             });
         }
@@ -336,6 +352,16 @@
         
         // Update player
         function updatePlayer() {
+            // Handle pipe animation
+            if (player.inPipe) {
+                player.pipeTimer++;
+                if (player.pipeTimer > 60) {
+                    player.inPipe = false;
+                    player.pipeTimer = 0;
+                }
+                return; // Don't allow movement during pipe transition
+            }
+            
             // Horizontal movement
             if (keys['ArrowLeft']) {
                 player.velocityX = -player.speed;
@@ -351,6 +377,28 @@
             if (keys[' '] && player.onGround) {
                 player.velocityY = player.jumpPower;
                 player.onGround = false;
+            }
+            
+            // Check for pipe entrance
+            if (keys['ArrowDown'] && player.onGround) {
+                platforms.forEach(platform => {
+                    if (platform.type === 'pipe' && platform.entrance) {
+                        // Check if player is standing on top of pipe
+                        const onPipe = player.x + player.width > platform.x + 4 &&
+                                      player.x < platform.x + platform.width - 4 &&
+                                      Math.abs(player.y + player.height - platform.y) < 5;
+                        
+                        if (onPipe) {
+                            player.inPipe = true;
+                            player.pipeTimer = 0;
+                            // Teleport to exit pipe
+                            setTimeout(() => {
+                                player.x = platform.targetX + 8;
+                                player.y = platforms.find(p => p.x === platform.targetX).y - player.height - 1;
+                            }, 500);
+                        }
+                    }
+                });
             }
             
             // Apply gravity
